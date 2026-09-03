@@ -1,27 +1,66 @@
 import './App.css';
+import { useState } from 'react';
+import Header from './components/Header';
+import TaskList from './components/TaskList';
+import TaskForm from './components/TaskForm';
+import FilterButtons from './components/FilterButtons';
 
-function Header() {
-  return (
-    <header>
-      <h1>Task Manager</h1>
-    </header>
-  );
-}
-
-function TaskList() {
-  return (
-    <section>
-      <h2>Tasks</h2>
-      <p>No tasks found. Add a new task to get started.</p>
-    </section>
-  );
-}
+const initialTasks = [
+  { id: 1, title: 'Task 1', completed: false },
+  { id: 2, title: 'Task 2', completed: false },
+  { id: 3, title: 'Task 3', completed: false },
+];
 
 function App() {
+  const [tasks, setTasks] = useState(initialTasks);
+  const [filter, setFilter] = useState('all');
+  const [loading] = useState(false);
+  const [error] = useState(null);
+  const addTask = (task) => {
+    setTasks([...tasks, task]);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const input = e.target.elements.title;
+    if (input.value.trim() === '') {
+      return;
+    }
+    addTask({
+      id: Math.max(0, ...tasks.map((t) => t.id)) + 1,
+      title: input.value,
+      completed: false,
+    });
+    input.value = '';
+  };
+
+  const deleteTask = (id) => {
+    setTasks(tasks.filter((task) => task.id !== id));
+  };
+
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === 'all') return true;
+    if (filter === 'active') return !task.completed;
+    if (filter === 'completed') return task.completed;
+  });
+
   return (
     <div>
       <Header />
-      <TaskList />
+      <TaskForm handleSubmit={handleSubmit} />
+      <FilterButtons
+        filters={['all', 'active', 'completed']}
+        filter={filter}
+        setFilter={setFilter}
+      />
+      <TaskList
+        filteredTasks={filteredTasks}
+        tasksLength={tasks.length}
+        deleteTask={deleteTask}
+        loading={loading}
+        error={error}
+        filter={filter}
+      />
     </div>
   );
 }
