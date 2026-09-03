@@ -1,11 +1,11 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import eslintConfigPrettier from 'eslint-config-prettier/flat'
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 
 export default [
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'drills'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
@@ -32,4 +32,4 @@ export default [
     },
   },
   eslintConfigPrettier,
-]
+];
