@@ -12,7 +12,10 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,jsx}": ["eslint --fix", "prettier --write"],
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
     "*.{json,css,md,html}": "prettier --write"
   },
   "dependencies": {
@@ -21,6 +24,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
@@ -32,6 +36,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
     "prettier": "^3.9.6",
+    "tailwindcss": "^4.3.3",
     "vite": "^6.3.5"
   }
 }

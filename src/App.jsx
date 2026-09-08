@@ -14,8 +14,6 @@ const initialTasks = [
 function App() {
   const [tasks, setTasks] = useState(initialTasks);
   const [filter, setFilter] = useState('all');
-  const [loading] = useState(false);
-  const [error] = useState(null);
   const addTask = (task) => {
     setTasks([...tasks, task]);
   };
@@ -57,8 +55,6 @@ function App() {
         filteredTasks={filteredTasks}
         tasksLength={tasks.length}
         deleteTask={deleteTask}
-        loading={loading}
-        error={error}
         filter={filter}
       />
     </div>
