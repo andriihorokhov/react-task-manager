@@ -1,5 +1,6 @@
 import './App.css';
 import { useState } from 'react';
+import useLocalStorage from './hooks/useLocalStorage';
 import Header from './components/Header';
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
@@ -12,7 +13,8 @@ const initialTasks = [
 ];
 
 function App() {
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useLocalStorage('tasks', initialTasks);
+
   const [filter, setFilter] = useState('all');
   const addTask = (task) => {
     setTasks([...tasks, task]);
@@ -32,8 +34,20 @@ function App() {
     input.value = '';
   };
 
+  const toggleComplete = (id) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task,
+      ),
+    );
+  };
+
   const deleteTask = (id) => {
     setTasks(tasks.filter((task) => task.id !== id));
+  };
+
+  const editTask = (id, title) => {
+    setTasks(tasks.map((task) => (task.id === id ? { ...task, title } : task)));
   };
 
   const filteredTasks = tasks.filter((task) => {
@@ -55,6 +69,8 @@ function App() {
         filteredTasks={filteredTasks}
         tasksLength={tasks.length}
         deleteTask={deleteTask}
+        toggleComplete={toggleComplete}
+        editTask={editTask}
         filter={filter}
       />
     </div>

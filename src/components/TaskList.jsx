@@ -1,5 +1,12 @@
 import TaskItem from './TaskItem';
-function TaskList({ filteredTasks, tasksLength, deleteTask, filter }) {
+function TaskList({
+  filteredTasks,
+  tasksLength,
+  deleteTask,
+  toggleComplete,
+  editTask,
+  filter,
+}) {
   return (
     <section>
       <h2>Tasks</h2>
@@ -10,7 +17,13 @@ function TaskList({ filteredTasks, tasksLength, deleteTask, filter }) {
       ) : (
         <ul>
           {filteredTasks.map((task) => (
-            <TaskItem key={task.id} task={task} deleteTask={deleteTask} />
+            <TaskItem
+              key={task.id}
+              task={task}
+              deleteTask={deleteTask}
+              toggleComplete={toggleComplete}
+              editTask={editTask}
+            />
           ))}
         </ul>
       )}
