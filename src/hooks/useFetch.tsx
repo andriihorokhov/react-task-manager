@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 
-export const useFetch = (url) => {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+export function useFetch<T>(url: string): {
+  data: T | null;
+  error: string | null;
+  loading: boolean;
+} {
+  const [data, setData] = useState<T | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!url) {
@@ -17,18 +21,20 @@ export const useFetch = (url) => {
       try {
         const response = await fetch(url, { signal: abortController.signal });
         if (!response.ok) {
-          setError(new Error('Failed to fetch data'));
+          setError('Failed to fetch data');
           setLoading(false);
           return;
         }
-        const data = await response.json();
+        const data = (await response.json()) as T;
         setData(data);
         setLoading(false);
       } catch (error) {
         if (abortController.signal.aborted) {
           return;
         }
-        setError(error);
+        setError(
+          error instanceof Error ? error.message : 'An unknown error occurred',
+        );
         setLoading(false);
       }
     };
@@ -39,4 +45,4 @@ export const useFetch = (url) => {
   }, [url]);
 
   return { data, error, loading };
-};
+}

@@ -1,4 +1,8 @@
-function TaskForm({ handleSubmit }) {
+function TaskForm({
+  handleSubmit,
+}: {
+  handleSubmit: React.SubmitEventHandler<HTMLFormElement>;
+}) {
   return (
     <form onSubmit={handleSubmit}>
       <input type="text" name="title" placeholder="Add a new task" />

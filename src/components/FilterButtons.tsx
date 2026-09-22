@@ -1,6 +1,15 @@
 import FilterButton from './FilterButton';
+import type { TaskStatus } from '../types';
 
-function FilterButtons({ filters, filter, setFilter }) {
+function FilterButtons({
+  filters,
+  filter,
+  setFilter,
+}: {
+  filters: TaskStatus[];
+  filter: TaskStatus;
+  setFilter: (filter: TaskStatus) => void;
+}) {
   return (
     <div className="filters btn-group">
       {filters.map((name) => (

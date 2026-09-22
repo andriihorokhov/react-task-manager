@@ -1,4 +1,6 @@
+import type { Task, TaskStatus } from '../types';
 import TaskItem from './TaskItem';
+
 function TaskList({
   filteredTasks,
   tasksLength,
@@ -6,6 +8,13 @@ function TaskList({
   toggleComplete,
   editTask,
   filter,
+}: {
+  filteredTasks: Task[];
+  tasksLength: number;
+  deleteTask: (id: number) => void;
+  toggleComplete: (id: number) => void;
+  editTask: (id: number, title: string) => void;
+  filter: TaskStatus;
 }) {
   return (
     <section>
