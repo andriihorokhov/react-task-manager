@@ -5,6 +5,7 @@ import Header from './components/Header';
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
 import FilterButtons from './components/FilterButtons';
+import Layout from './components/Layout';
 import type { Task, TaskStatus } from './types';
 import { useFetch } from './hooks/useFetch';
 const API_URL: string = 'http://localhost:3001/tasks';
@@ -18,8 +19,8 @@ function App() {
       setTasks(data);
     }
   }, [data]);
-  const [filter, setFilter] = useState<TaskStatus>('all');
 
+  const [filter, setFilter] = useState<TaskStatus>('all');
   const [creatingTask, setCreatingTask] = useState<boolean>(false);
   const [creatingTaskError, setCreatingTaskError] = useState<string | null>(
     null,
@@ -165,39 +166,37 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-900 invert">
-      <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-10">
-        <Header />
-        <TaskForm
-          handleSubmit={handleSubmit}
-          creatingTask={creatingTask}
-          creatingTaskError={creatingTaskError}
-        />
-        <FilterButtons
-          filters={['all', 'active', 'completed']}
-          filter={filter}
-          setFilter={setFilter}
-        />
-        <TaskList
-          tasks={tasks}
-          loading={loading}
-          error={error}
-          deleteTask={deleteTask}
-          toggleComplete={toggleComplete}
-          editTask={editTask}
-          filter={filter}
-          deletingTask={deletingTask}
-          deletingTaskError={deletingTaskError}
-          deletingId={deletingId}
-          editingTask={editingTask}
-          editingTaskError={editingTaskError}
-          editingId={editingId}
-          toggleCompleteLoading={toggleCompleteLoading}
-          toggleCompleteTaskError={toggleCompleteTaskError}
-          toggleCompleteId={toggleCompleteId}
-        />
-      </div>
-    </div>
+    <Layout>
+      <Header />
+      <TaskForm
+        handleSubmit={handleSubmit}
+        creatingTask={creatingTask}
+        creatingTaskError={creatingTaskError}
+      />
+      <FilterButtons
+        filters={['all', 'active', 'completed']}
+        filter={filter}
+        setFilter={setFilter}
+      />
+      <TaskList
+        tasks={tasks}
+        loading={loading}
+        error={error}
+        deleteTask={deleteTask}
+        toggleComplete={toggleComplete}
+        editTask={editTask}
+        filter={filter}
+        deletingTask={deletingTask}
+        deletingTaskError={deletingTaskError}
+        deletingId={deletingId}
+        editingTask={editingTask}
+        editingTaskError={editingTaskError}
+        editingId={editingId}
+        toggleCompleteLoading={toggleCompleteLoading}
+        toggleCompleteTaskError={toggleCompleteTaskError}
+        toggleCompleteId={toggleCompleteId}
+      />
+    </Layout>
   );
 }
 
