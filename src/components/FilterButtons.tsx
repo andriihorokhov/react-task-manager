@@ -11,7 +11,7 @@ function FilterButtons({
   setFilter: (filter: TaskStatus) => void;
 }) {
   return (
-    <div className="filters btn-group">
+    <div className="flex gap-2">
       {filters.map((name) => (
         <FilterButton
           key={name}

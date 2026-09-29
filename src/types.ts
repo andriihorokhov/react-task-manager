@@ -2,7 +2,7 @@ type TaskStatus = 'all' | 'active' | 'completed';
 type Priority = 'low' | 'medium' | 'high';
 
 type Task = {
-  id: number;
+  id: string;
   title: string;
   completed: boolean;
   priority?: Priority;
