@@ -1,5 +1,6 @@
 import type { Task } from '../types';
 import TaskItemEdit from './TaskItemEdit';
+import Button from './Button';
 function TaskItem({
   task,
   deleteTask,
@@ -29,11 +30,6 @@ function TaskItem({
   toggleCompleteTaskError: string | null;
   toggleCompleteId: string | null;
 }) {
-  const quietButton =
-    'cursor-pointer rounded-md border border-stone-300 bg-white px-2.5 py-1 text-sm text-stone-700 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50';
-  const dangerButton =
-    'cursor-pointer rounded-md border border-red-200 bg-white px-2.5 py-1 text-sm text-red-700 transition-colors duration-150 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50';
-
   return (
     <li className="flex flex-col gap-2 border-b border-stone-200 py-3 last:border-b-0">
       <TaskItemEdit
@@ -43,24 +39,29 @@ function TaskItem({
         editingId={editingId}
       />
       <div className="flex flex-wrap gap-2">
-        <button
-          className={dangerButton}
+        <Button
+          children={
+            deletingTask && deletingId === task.id ? 'Deleting...' : 'Delete'
+          }
+          variant="danger"
+          type="button"
           onClick={() => deleteTask(task.id)}
           disabled={deletingTask && deletingId === task.id}
-        >
-          {deletingTask && deletingId === task.id ? 'Deleting...' : 'Delete'}
-        </button>
-        <button
-          className={quietButton}
+        ></Button>
+
+        <Button
+          children={
+            toggleCompleteLoading && toggleCompleteId === task.id
+              ? 'Loading...'
+              : task.completed
+                ? 'Incomplete'
+                : 'Complete'
+          }
+          variant="tertiary"
+          type="button"
           onClick={() => toggleComplete(task.id)}
           disabled={toggleCompleteLoading && toggleCompleteId === task.id}
-        >
-          {toggleCompleteLoading && toggleCompleteId === task.id
-            ? 'Loading...'
-            : task.completed
-              ? 'Incomplete'
-              : 'Complete'}
-        </button>
+        ></Button>
       </div>
       {deletingTaskError && deletingId === task.id && (
         <div className="text-sm text-red-700">

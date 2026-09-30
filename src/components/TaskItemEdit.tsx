@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Task } from '../types';
+import Button from './Button';
 
 export default function TaskItemEdit({
   task,
@@ -29,8 +30,9 @@ export default function TaskItemEdit({
         </span>
       )}
       <div className="flex flex-wrap gap-2">
-        <button
-          className="cursor-pointer rounded-md border border-stone-300 bg-white px-2.5 py-1 text-sm text-stone-700 transition-colors duration-150 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+        <Button
+          variant="tertiary"
+          type="button"
           onClick={() => {
             if (isEditMode) {
               setEditedTitle(task.title);
@@ -39,10 +41,11 @@ export default function TaskItemEdit({
           }}
         >
           {isEditMode ? 'Cancel' : 'Edit'}
-        </button>
+        </Button>
         {isEditMode && (
-          <button
-            className="cursor-pointer rounded-md bg-stone-900 px-2.5 py-1 text-sm text-white transition-colors duration-150 hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
+          <Button
+            variant="primary"
+            type="button"
             onClick={async () => {
               if (editedTitle.trim()) {
                 const success = await editTask(task.id, editedTitle.trim());
@@ -56,7 +59,7 @@ export default function TaskItemEdit({
             disabled={editingTask && editingId === task.id}
           >
             {editingTask && editingId === task.id ? 'Saving...' : 'Save'}
-          </button>
+          </Button>
         )}
       </div>
     </>

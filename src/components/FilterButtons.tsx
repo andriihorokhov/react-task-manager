@@ -1,4 +1,4 @@
-import FilterButton from './FilterButton';
+import Button from './Button';
 import type { TaskStatus } from '../types';
 
 function FilterButtons({
@@ -13,11 +13,14 @@ function FilterButtons({
   return (
     <div className="flex gap-2">
       {filters.map((name) => (
-        <FilterButton
+        <Button
           key={name}
-          name={name}
-          isPressed={filter === name}
-          setFilter={setFilter}
+          children={name}
+          ariaPressed={filter === name}
+          onClick={() => setFilter(name)}
+          disabled={false}
+          variant="secondary"
+          type="button"
         />
       ))}
     </div>

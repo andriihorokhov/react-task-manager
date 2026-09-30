@@ -1,9 +1,10 @@
-function TaskForm({
+import Button from './Button';
+export default function TaskForm({
   handleSubmit,
   creatingTask,
   creatingTaskError,
 }: {
-  handleSubmit: React.SubmitEventHandler<HTMLFormElement>;
+  handleSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
   creatingTask: boolean;
   creatingTaskError: string | null;
 }) {
@@ -16,13 +17,12 @@ function TaskForm({
           name="title"
           placeholder="Add a new task"
         />
-        <button
-          className="cursor-pointer rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
+        <Button
+          children={creatingTask ? 'Creating...' : 'Add'}
           type="submit"
           disabled={creatingTask}
-        >
-          {creatingTask ? 'Creating...' : 'Add'}
-        </button>
+          variant="primary"
+        />
       </form>
       {creatingTaskError && (
         <div className="text-sm text-red-700">
@@ -32,5 +32,3 @@ function TaskForm({
     </>
   );
 }
-
-export default TaskForm;
