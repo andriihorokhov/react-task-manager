@@ -1,13 +1,24 @@
 import Button from './Button';
 export default function TaskForm({
-  handleSubmit,
+  createTask,
   creatingTask,
   creatingTaskError,
 }: {
-  handleSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
+  createTask: (title: string) => Promise<boolean>;
   creatingTask: boolean;
   creatingTaskError: string | null;
 }) {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const title = formData.get('title');
+    if (typeof title !== 'string') return;
+    const success = await createTask(title);
+    if (success) {
+      form.reset();
+    }
+  };
   return (
     <>
       <form className="flex gap-2" onSubmit={handleSubmit}>
