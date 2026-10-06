@@ -16,6 +16,7 @@ export default function Layout() {
           className={({ isActive }) =>
             isActive ? 'text-stone-900' : 'text-stone-500'
           }
+          end
         >
           Tasks
         </NavLink>

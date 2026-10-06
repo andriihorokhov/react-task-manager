@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import Layout from './components/Layout';
 import RouteError from './components/RouteError';
 import Dashboard from './components/Dashboard';
+import TaskDetail from './components/TaskDetail';
 import App from './App';
 const router = createBrowserRouter([
   {
@@ -15,6 +16,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, Component: Dashboard },
       { path: 'tasks', Component: App },
+      { path: 'tasks/:id', Component: TaskDetail },
     ],
   },
 ]);
