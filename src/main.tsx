@@ -6,12 +6,16 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import Layout from './components/Layout';
 import RouteError from './components/RouteError';
 import Dashboard from './components/Dashboard';
+import App from './App';
 const router = createBrowserRouter([
   {
     path: '/',
     Component: Layout,
     ErrorBoundary: RouteError,
-    children: [{ index: true, Component: Dashboard }],
+    children: [
+      { index: true, Component: Dashboard },
+      { path: 'tasks', Component: App },
+    ],
   },
 ]);
 
