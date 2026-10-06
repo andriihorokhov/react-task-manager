@@ -1,8 +1,19 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App from './App';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createBrowserRouter, RouterProvider } from 'react-router';
+import Layout from './components/Layout';
+import RouteError from './components/RouteError';
+import Dashboard from './components/Dashboard';
+const router = createBrowserRouter([
+  {
+    path: '/',
+    Component: Layout,
+    ErrorBoundary: RouteError,
+    children: [{ index: true, Component: Dashboard }],
+  },
+]);
 
 const queryClient = new QueryClient();
 
@@ -15,7 +26,7 @@ if (!root) {
 createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <RouterProvider router={router} />
     </QueryClientProvider>
   </StrictMode>,
 );

@@ -4,7 +4,6 @@ import Header from './components/Header';
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
 import FilterButtons from './components/FilterButtons';
-import Layout from './components/Layout';
 import type { TaskStatus } from './types';
 import { useTasks } from './hooks/useTasks';
 
@@ -32,7 +31,7 @@ function App() {
   } = useTasks();
 
   return (
-    <Layout>
+    <>
       <Header />
       <TaskForm
         createTask={createTask}
@@ -62,7 +61,7 @@ function App() {
         toggleCompleteTaskError={toggleCompleteTaskError}
         toggleCompleteId={toggleCompleteId}
       />
-    </Layout>
+    </>
   );
 }
 
