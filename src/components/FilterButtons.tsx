@@ -8,7 +8,7 @@ function FilterButtons({
 }: {
   filters: TaskStatus[];
   filter: TaskStatus;
-  setFilter: (filter: TaskStatus) => void;
+  setFilter: (next: TaskStatus) => void;
 }) {
   return (
     <div className="flex gap-2">
