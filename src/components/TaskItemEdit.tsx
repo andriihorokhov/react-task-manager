@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Task } from '../types';
 import Button from './Button';
+import { motion } from 'framer-motion';
 
 export default function TaskItemEdit({
   task,
@@ -25,8 +26,16 @@ export default function TaskItemEdit({
           onChange={(e) => setEditedTitle(e.target.value)}
         />
       ) : (
-        <span className={task.completed ? 'text-stone-400 line-through' : ''}>
+        <span
+          className={`relative block w-fit ${task.completed ? 'text-stone-400 ' : ''}`}
+        >
           {task.title}
+          <motion.span
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: task.completed ? '100%' : 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-0 top-1/2 h-0.5 bg-stone-400"
+          />
         </span>
       )}
       <div className="flex flex-wrap gap-2">

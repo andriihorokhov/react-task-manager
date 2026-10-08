@@ -1,5 +1,6 @@
 import type { Task, TaskStatus } from '../types';
 import TaskItem from './TaskItem';
+import { AnimatePresence, motion } from 'framer-motion';
 
 function TaskList({
   tasks,
@@ -50,18 +51,7 @@ function TaskList({
       </div>
     );
   }
-  const filteredTasks = tasks.filter((task) => {
-    if (filter === 'all') {
-      return true;
-    }
-    if (filter === 'active') {
-      return !task.completed;
-    }
-    if (filter === 'completed') {
-      return task.completed;
-    }
-    return false;
-  });
+
   return (
     <section className="flex flex-col gap-3">
       <h2 className="text-sm font-medium tracking-wide text-stone-500 uppercase">
@@ -71,31 +61,40 @@ function TaskList({
         <div className="rounded-xl bg-white px-4 py-6 text-sm text-stone-600 shadow-sm">
           <p>No tasks found. Add a new task to get started.</p>
         </div>
-      ) : filteredTasks.length === 0 ? (
-        <div className="rounded-xl bg-white px-4 py-6 text-sm text-stone-600 shadow-sm">
-          <p>No {filter} tasks found. </p>
-        </div>
       ) : (
-        <ul className="rounded-xl bg-white px-4 shadow-sm">
-          {filteredTasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              deleteTask={deleteTask}
-              toggleComplete={toggleComplete}
-              editTask={editTask}
-              deletingTask={deletingTask}
-              deletingTaskError={deletingTaskError}
-              deletingId={deletingId}
-              editingTask={editingTask}
-              editingTaskError={editingTaskError}
-              editingId={editingId}
-              toggleCompleteLoading={toggleCompleteLoading}
-              toggleCompleteTaskError={toggleCompleteTaskError}
-              toggleCompleteId={toggleCompleteId}
-            />
-          ))}
-        </ul>
+        <motion.ul
+          className="rounded-xl bg-white px-4 shadow-sm"
+          variants={{
+            visible: { transition: { staggerChildren: 0.03 } },
+          }}
+          initial="hidden"
+          animate="visible"
+        >
+          <AnimatePresence>
+            {tasks.map((task) => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                deleteTask={deleteTask}
+                toggleComplete={toggleComplete}
+                editTask={editTask}
+                deletingTask={deletingTask}
+                deletingTaskError={deletingTaskError}
+                deletingId={deletingId}
+                editingTask={editingTask}
+                editingTaskError={editingTaskError}
+                editingId={editingId}
+                toggleCompleteLoading={toggleCompleteLoading}
+                toggleCompleteTaskError={toggleCompleteTaskError}
+                toggleCompleteId={toggleCompleteId}
+                hidden={
+                  (filter === 'active' && task.completed) ||
+                  (filter === 'completed' && !task.completed)
+                }
+              />
+            ))}
+          </AnimatePresence>
+        </motion.ul>
       )}
     </section>
   );

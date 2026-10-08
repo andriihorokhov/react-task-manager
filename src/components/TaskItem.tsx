@@ -1,6 +1,7 @@
 import type { Task } from '../types';
 import TaskItemEdit from './TaskItemEdit';
 import Button from './Button';
+import { motion } from 'framer-motion';
 function TaskItem({
   task,
   deleteTask,
@@ -15,6 +16,7 @@ function TaskItem({
   toggleCompleteLoading,
   toggleCompleteTaskError,
   toggleCompleteId,
+  hidden = false, // default to false if not provided
 }: {
   task: Task;
   deleteTask: (id: string) => void;
@@ -29,9 +31,21 @@ function TaskItem({
   toggleCompleteLoading: boolean;
   toggleCompleteTaskError: string | null;
   toggleCompleteId: string | null;
+  hidden?: boolean;
 }) {
   return (
-    <li className="flex flex-col gap-2 border-b border-stone-200 py-3 last:border-b-0">
+    <motion.li
+      variants={{
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0 },
+      }}
+      exit={{ opacity: 0, y: 10 }}
+      transition={{ duration: 0.2 }}
+      className="flex flex-col gap-2 border-b border-stone-200 py-3 last:border-b-0"
+      style={{
+        display: hidden ? 'none' : undefined,
+      }}
+    >
       <TaskItemEdit
         task={task}
         editTask={editTask}
@@ -78,7 +92,7 @@ function TaskItem({
           <p>Error: {toggleCompleteTaskError}</p>
         </div>
       )}
-    </li>
+    </motion.li>
   );
 }
 
