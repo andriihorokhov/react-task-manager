@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import { Task } from '../types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-const API_URL: string = 'http://localhost:3001/tasks';
+import {
+  getTasks,
+  createTaskRequest,
+  updateTaskTitle,
+  updateTaskCompleted,
+  deleteTaskRequest,
+} from '../api/tasks';
 
 export function useTasks() {
   const [creatingTask, setCreatingTask] = useState<boolean>(false);
@@ -29,28 +33,14 @@ export function useTasks() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['tasks'],
     queryFn: async () => {
-      const response = await fetch(API_URL);
-      if (!response.ok) {
-        throw new Error('Failed to fetch tasks');
-      }
-      return (await response.json()) as Task[];
+      return getTasks();
     },
   });
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
     mutationFn: async (title: string) => {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title: title, completed: false }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to create task');
-      }
-      return (await response.json()) as Task;
+      return createTaskRequest(title);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -59,17 +49,7 @@ export function useTasks() {
 
   const editMutation = useMutation({
     mutationFn: async ({ id, title }: { id: string; title: string }) => {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to edit task');
-      }
-      return (await response.json()) as Task;
+      return updateTaskTitle(id, title);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -84,19 +64,7 @@ export function useTasks() {
       id: string;
       completed: boolean;
     }) => {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          completed,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to toggle complete task');
-      }
-      return (await response.json()) as Task;
+      return updateTaskCompleted(id, completed);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -105,13 +73,7 @@ export function useTasks() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete task');
-      }
-      return (await response.json()) as Task;
+      return deleteTaskRequest(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
