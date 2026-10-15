@@ -1,5 +1,6 @@
+'use client';
 import { useTasks } from '../hooks/useTasks';
-import { NavLink } from 'react-router';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const { tasks, loading, error } = useTasks();
@@ -16,17 +17,17 @@ export default function Dashboard() {
     <div>
       <ul>
         <li>
-          <NavLink to="/tasks">All ({tasks.length})</NavLink>
+          <Link href="/tasks">All ({tasks.length})</Link>
         </li>
         <li>
-          <NavLink to="/tasks?status=active">
+          <Link href="/tasks?status=active">
             Active ({tasks.filter((task) => !task.completed).length})
-          </NavLink>
+          </Link>
         </li>
         <li>
-          <NavLink to="/tasks?status=completed">
+          <Link href="/tasks?status=completed">
             Completed ({tasks.filter((task) => task.completed).length})
-          </NavLink>
+          </Link>
         </li>
       </ul>
     </div>

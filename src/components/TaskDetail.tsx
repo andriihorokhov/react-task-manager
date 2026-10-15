@@ -1,9 +1,11 @@
+'use client';
 import { useTasks } from '../hooks/useTasks';
-import { useParams } from 'react-router';
+import { useParams } from 'next/navigation';
 import TaskItem from './TaskItem';
 import { Task } from '../types';
 export default function TaskDetail() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id as string;
   const {
     tasks,
     loading,

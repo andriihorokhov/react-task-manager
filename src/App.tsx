@@ -1,10 +1,12 @@
+'use client';
 import './App.css';
 import Header from './components/Header';
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
 import FilterButtons from './components/FilterButtons';
 import { useTasks } from './hooks/useTasks';
-import { useSearchParams } from 'react-router';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import type { TaskStatus } from './types';
 function App() {
   const {
@@ -27,8 +29,9 @@ function App() {
     toggleCompleteId,
     deletingId,
   } = useTasks();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const status = searchParams.get('status') || 'all';
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const status = searchParams.get('status') ?? 'all';
   const filter: TaskStatus =
     status === 'active'
       ? 'active'
@@ -36,7 +39,9 @@ function App() {
         ? 'completed'
         : 'all';
   function setFilter(next: TaskStatus) {
-    setSearchParams({ status: next });
+    const params = new URLSearchParams(searchParams);
+    params.set('status', next);
+    router.push(`/tasks?${params.toString()}`);
   }
   return (
     <>

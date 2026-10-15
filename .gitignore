@@ -13,6 +13,7 @@ dist
 dist-ssr
 db.json
 *.local
+.next
 
 # Editor directories and files
 .vscode/*
