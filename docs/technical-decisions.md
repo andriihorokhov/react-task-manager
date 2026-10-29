@@ -46,3 +46,5 @@ The dashboard, `/tasks`, and `/tasks/[id]` each call `useTasks`, so they share o
 `src/app/layout.tsx` and the three `page.tsx` files stay server components. They only render the client files above.
 
 `TaskList`, `TaskItem`, `TaskItemEdit`, `TaskForm`, and `FilterButtons` use state, clicks, or motion and have no directive of their own. They are imported from `App` or `TaskDetail`, which are already client components.
+
+окремий Express це процес який окремо від застосунку next тому що ми робитимемом бекенд окремо на node експрес лежить, покладемо в папку server в корені поруч з src. для цього застосунку route handlers теж вистачило б

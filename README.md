@@ -4,7 +4,7 @@ A small task list on the Next.js App Router. The dashboard, the list, and a task
 
 Live app: https://react-task-manager-nine-amber.vercel.app/
 
-The deployed page renders the shell. Task rows are loaded in the browser from `http://localhost:3001`, so they show up only on a machine where json-server is running. A public API comes later.
+The deployed page renders the shell. Task rows are loaded in the browser from `http://localhost:3001`, so they show up only on a machine where the Express server in `server/` is running. A public API comes later.
 
 ## Routes
 
@@ -18,17 +18,11 @@ The deployed page renders the shell. Task rows are loaded in the browser from `h
 
 ```bash
 npm install
-npx json-server db.json -p 3001
+node --watch --env-file=.env server/app.ts
 npm run dev
 ```
 
-Open http://localhost:3000. `db.json` stays on your machine and is not in git. json-server expects a `tasks` array:
-
-```json
-{
-  "tasks": [{ "id": "1", "title": "Write the week note", "completed": false }]
-}
-```
+Open http://localhost:3000. The API listens on the port in `.env` and stores tasks in `server/tasks.json`.
 
 ## Checks
 

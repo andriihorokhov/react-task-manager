@@ -13,7 +13,9 @@ dist
 dist-ssr
 db.json
 *.local
+.env
 .next
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
