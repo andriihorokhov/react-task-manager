@@ -48,3 +48,14 @@ The dashboard, `/tasks`, and `/tasks/[id]` each call `useTasks`, so they share o
 `TaskList`, `TaskItem`, `TaskItemEdit`, `TaskForm`, and `FilterButtons` use state, clicks, or motion and have no directive of their own. They are imported from `App` or `TaskDetail`, which are already client components.
 
 окремий Express це процес який окремо від застосунку next тому що ми робитимемом бекенд окремо на node експрес лежить, покладемо в папку server в корені поруч з src. для цього застосунку route handlers теж вистачило б
+
+таблиці:
+users: id name email(унікальний) password
+projects: id name description user_id(посилається на таблицю users)
+tasks: id name description project_id(посилається на таблицю projects) user_id(посилається на таблицю users)
+
+всі колонки обовязкові
+
+коли роект видаляють то всі задачі цьго проекту теж видаляються
+
+id в таблицях - первинний ключ

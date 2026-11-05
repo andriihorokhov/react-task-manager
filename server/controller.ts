@@ -1,16 +1,7 @@
 import type { Request, Response } from 'express';
-import { readFile, writeFile } from 'fs/promises';
-import path from 'path';
 import { z } from 'zod';
-const taskSchema = z.object({
-  id: z.string(),
-  priority: z.enum(['low', 'medium', 'high']),
-  title: z.string(),
-  completed: z.boolean(),
-});
-const tasksSchema = z.object({
-  tasks: z.array(taskSchema),
-});
+import prisma from './db.ts';
+
 const createTaskSchema = z.object({
   priority: z.enum(['low', 'medium', 'high']).optional(),
   title: z.string(),
@@ -20,75 +11,110 @@ const updateTaskSchema = z.object({
   title: z.string().optional(),
   completed: z.boolean().optional(),
 });
+
 const getTasks = async (req: Request, res: Response) => {
-  const tasks = await readFile(
-    path.join(import.meta.dirname, 'tasks.json'),
-    'utf8',
-  );
-  const tasksData = tasksSchema.parse(JSON.parse(tasks));
-  res.status(200).json(tasksData.tasks);
+  const tasks = await prisma.task.findMany({
+    select: {
+      id: true,
+      name: true,
+      published: true,
+    },
+  });
+
+  const TasksResponse = tasks.map((task) => ({
+    id: task.id.toString(),
+    title: task.name,
+    completed: task.published,
+    priority: 'low',
+  }));
+  res.status(200).json(TasksResponse);
 };
 const createTask = async (req: Request, res: Response) => {
   const task = createTaskSchema.parse(req.body);
-  const tasks = await readFile(
-    path.join(import.meta.dirname, 'tasks.json'),
-    'utf8',
-  );
-  const tasksData = tasksSchema.parse(JSON.parse(tasks));
-  tasksData.tasks.push({
-    id: crypto.randomUUID(),
-    completed: false,
-    priority: task.priority ?? 'low',
-    title: task.title,
+  const user = await prisma.user.findFirst({});
+  const project = await prisma.project.findFirst({
+    where: {
+      authorId: user?.id,
+    },
+    select: {
+      id: true,
+    },
   });
+  if (!user?.id || !project?.id) {
+    return res.status(404).json({ error: 'User or project not found' });
+  }
+  const newTask = await prisma.task.create({
+    data: {
+      name: task.title,
+      published: false,
+      description: '',
+      authorId: user?.id,
+      projectId: project?.id,
+    },
+  });
+  const TaskResponse = {
+    id: newTask.id.toString(),
+    title: newTask.name,
+    completed: newTask.published,
+    priority: 'low',
+  };
 
-  await writeFile(
-    path.join(import.meta.dirname, 'tasks.json'),
-    JSON.stringify(tasksData, null, 2),
-  );
-  res.status(201).json(task);
+  res.status(201).json(TaskResponse);
 };
 const updateTask = async (req: Request, res: Response) => {
   const { id } = req.params;
   const task = updateTaskSchema.parse(req.body);
-  const tasks = await readFile(
-    path.join(import.meta.dirname, 'tasks.json'),
-    'utf8',
-  );
-  const tasksData = tasksSchema.parse(JSON.parse(tasks));
-  const foundTask = tasksData.tasks.find((t) => t.id === id);
-  if (!foundTask) {
+  const tasks = await prisma.task.findUnique({
+    where: {
+      id: parseInt(id as string),
+    },
+    select: {
+      id: true,
+      name: true,
+      published: true,
+    },
+  });
+  if (!tasks) {
     return res.status(404).json({ error: 'Task not found' });
   }
+  const updatedTask = await prisma.task.update({
+    where: {
+      id: parseInt(id as string),
+    },
+    data: {
+      name: task.title ?? tasks?.name,
+      published: task.completed ?? tasks?.published,
+    },
+    select: {
+      id: true,
+      name: true,
+      published: true,
+    },
+  });
 
-  foundTask.priority = task.priority ?? foundTask.priority;
-  foundTask.title = task.title ?? foundTask.title;
-  foundTask.completed = task.completed ?? foundTask.completed;
-
-  console.log('foundTask', foundTask);
-
-  await writeFile(
-    path.join(import.meta.dirname, 'tasks.json'),
-    JSON.stringify(tasksData, null, 2),
-  );
-  res.status(200).json(foundTask);
+  const TaskResponse = {
+    id: updatedTask.id.toString(),
+    title: updatedTask.name,
+    completed: updatedTask.published,
+    priority: 'low',
+  };
+  res.status(200).json(TaskResponse);
 };
 const deleteTask = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const tasks = await readFile(
-    path.join(import.meta.dirname, 'tasks.json'),
-    'utf8',
-  );
-  const tasksData = tasksSchema.parse(JSON.parse(tasks));
-  const foundTask = tasksData.tasks.find((t) => t.id === id);
-  if (!foundTask) {
+  const task = await prisma.task.findUnique({
+    where: {
+      id: parseInt(id as string),
+    },
+  });
+  if (!task) {
     return res.status(404).json({ error: 'Task not found' });
   }
-  tasksData.tasks = tasksData.tasks.filter((t) => t.id !== id);
-  await writeFile(
-    path.join(import.meta.dirname, 'tasks.json'),
-    JSON.stringify(tasksData, null, 2),
-  );
+  await prisma.task.delete({
+    where: {
+      id: parseInt(id as string),
+    },
+  });
   res.status(200).json({ message: 'Task deleted successfully' });
 };
 export { getTasks, createTask, updateTask, deleteTask };

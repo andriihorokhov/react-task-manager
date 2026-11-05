@@ -16,7 +16,7 @@ db.json
 .env
 .next
 *.tsbuildinfo
-
+prisma/generated
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

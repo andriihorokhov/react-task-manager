@@ -6,7 +6,7 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'drills', 'node_modules', '.next'] },
+  { ignores: ['dist', 'drills', 'node_modules', '.next', 'prisma/generated'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
