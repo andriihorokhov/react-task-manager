@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import prisma from './db.ts';
-
+import crypto from 'node:crypto';
+import { scryptSync } from 'node:crypto';
+import jwt from 'jsonwebtoken';
 const createTaskSchema = z.object({
   priority: z.enum(['low', 'medium', 'high']).optional(),
   title: z.string(),
@@ -11,7 +13,14 @@ const updateTaskSchema = z.object({
   title: z.string().optional(),
   completed: z.boolean().optional(),
 });
-
+const registerUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+const loginUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
 const getTasks = async (req: Request, res: Response) => {
   const tasks = await prisma.task.findMany({
     select: {
@@ -117,4 +126,53 @@ const deleteTask = async (req: Request, res: Response) => {
   });
   res.status(200).json({ message: 'Task deleted successfully' });
 };
-export { getTasks, createTask, updateTask, deleteTask };
+
+const registerUser = async (req: Request, res: Response) => {
+  const { email, password } = registerUserSchema.parse(req.body);
+  const salt = crypto.randomBytes(16).toString('hex');
+  await prisma.user.create({
+    data: {
+      email,
+      name: email,
+      password: `${scryptSync(password, salt, 32).toString('hex')}:${salt}`,
+    },
+  });
+
+  res.status(201).json({ message: 'User registered successfully' });
+};
+const loginUser = async (req: Request, res: Response) => {
+  const { email, password } = loginUserSchema.parse(req.body);
+  const user = await prisma.user.findFirst({
+    where: {
+      email,
+    },
+  });
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  const [hash, salt] = user.password.split(':');
+  const passwordMatch = scryptSync(password, salt, 32).toString('hex') === hash;
+  if (!passwordMatch) {
+    return res.status(401).json({ error: 'Invalid password' });
+  }
+  const token = jwt.sign(
+    { userId: user.id },
+    process.env.JWT_SECRET as string,
+    { expiresIn: '1h' },
+  );
+  res.cookie('token', token, { httpOnly: true, secure: true, maxAge: 3600000 });
+  res.status(200).json();
+};
+const logoutUser = async (req: Request, res: Response) => {
+  res.clearCookie('token', { httpOnly: true, secure: true });
+  res.status(200).json({ message: 'User logged out successfully' });
+};
+export {
+  getTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  registerUser,
+  loginUser,
+  logoutUser,
+};

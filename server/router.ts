@@ -1,12 +1,23 @@
 import { Router } from 'express';
-import { createTask, getTasks, updateTask, deleteTask } from './controller.ts';
-import { getErrorMiddleware } from './middleware.ts';
+import {
+  createTask,
+  getTasks,
+  updateTask,
+  deleteTask,
+  registerUser,
+  loginUser,
+  logoutUser,
+} from './controller.ts';
+import { getErrorMiddleware, getTokenMiddleware } from './middleware.ts';
 import type { ErrorRequestHandler } from 'express';
 const router = Router();
 
-router.get('/tasks', getTasks);
-router.post('/tasks', createTask);
-router.patch('/tasks/:id', updateTask);
-router.delete('/tasks/:id', deleteTask);
+router.get('/tasks', getTokenMiddleware, getTasks);
+router.post('/tasks', getTokenMiddleware, createTask);
+router.patch('/tasks/:id', getTokenMiddleware, updateTask);
+router.delete('/tasks/:id', getTokenMiddleware, deleteTask);
+router.post('/register', registerUser);
+router.post('/login', loginUser);
+router.post('/logout', logoutUser);
 router.use(getErrorMiddleware as ErrorRequestHandler);
 export default router;
