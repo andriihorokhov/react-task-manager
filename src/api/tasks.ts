@@ -2,9 +2,17 @@ import { Task } from '../types';
 const API_URL: string = 'http://localhost:3001/tasks';
 
 const getTasks = async () => {
-  const response = await fetch(API_URL);
+  const response = await fetch(API_URL, {
+    credentials: 'include',
+  });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch tasks');
+    // 401 Unauthorized
+    if (response.status === 401) {
+      throw new Error('Unauthorized');
+    } else {
+      throw new Error('Failed to fetch tasks');
+    }
   }
   return (await response.json()) as Task[];
 };
@@ -12,6 +20,7 @@ const getTasks = async () => {
 const createTaskRequest = async (title: string) => {
   const response = await fetch(API_URL, {
     method: 'POST',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -26,6 +35,7 @@ const createTaskRequest = async (title: string) => {
 const updateTaskTitle = async (id: string, title: string) => {
   const response = await fetch(`${API_URL}/${id}`, {
     method: 'PATCH',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -40,6 +50,7 @@ const updateTaskTitle = async (id: string, title: string) => {
 const updateTaskCompleted = async (id: string, completed: boolean) => {
   const response = await fetch(`${API_URL}/${id}`, {
     method: 'PATCH',
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -56,6 +67,7 @@ const updateTaskCompleted = async (id: string, completed: boolean) => {
 const deleteTaskRequest = async (id: string) => {
   const response = await fetch(`${API_URL}/${id}`, {
     method: 'DELETE',
+    credentials: 'include',
   });
   if (!response.ok) {
     throw new Error('Failed to delete task');

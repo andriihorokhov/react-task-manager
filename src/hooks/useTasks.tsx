@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import {
   getTasks,
   createTaskRequest,
@@ -9,6 +10,7 @@ import {
 } from '../api/tasks';
 
 export function useTasks() {
+  const router = useRouter();
   const [creatingTask, setCreatingTask] = useState<boolean>(false);
   const [creatingTaskError, setCreatingTaskError] = useState<string | null>(
     null,
@@ -30,12 +32,24 @@ export function useTasks() {
     null,
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['tasks'],
     queryFn: async () => {
       return getTasks();
     },
+    retry: (failureCount, error) => {
+      if (error instanceof Error && error.message === 'Unauthorized') {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
+  useEffect(() => {
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      router.push('/login');
+    }
+  }, [router, error]);
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({

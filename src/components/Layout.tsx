@@ -2,8 +2,10 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-stone-100 text-stone-900 invert">
       <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-10">
@@ -22,6 +24,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         >
           Tasks
         </Link>
+        <button
+          onClick={() => {
+            fetch('http://localhost:3001/logout', {
+              method: 'POST',
+              credentials: 'include',
+            }).then(() => {
+              router.push('/login');
+            });
+          }}
+          className="text-stone-500 hover:text-stone-900 cursor-pointer"
+        >
+          Logout
+        </button>
         <AnimatePresence mode="wait">
           <motion.div
             className="flex flex-col gap-6"
