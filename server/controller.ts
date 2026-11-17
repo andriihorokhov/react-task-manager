@@ -22,11 +22,16 @@ const loginUserSchema = z.object({
   password: z.string().min(8),
 });
 const getTasks = async (req: Request, res: Response) => {
+  const user = (req as Request & { user?: { userId?: number } }).user;
   const tasks = await prisma.task.findMany({
+    where: {
+      authorId: user?.userId,
+    },
     select: {
       id: true,
       name: true,
       published: true,
+      authorId: true,
     },
   });
 
@@ -39,17 +44,20 @@ const getTasks = async (req: Request, res: Response) => {
   res.status(200).json(TasksResponse);
 };
 const createTask = async (req: Request, res: Response) => {
+  const user = (req as Request & { user?: { userId?: number } }).user;
+  if (!user?.userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   const task = createTaskSchema.parse(req.body);
-  const user = await prisma.user.findFirst({});
   const project = await prisma.project.findFirst({
     where: {
-      authorId: user?.id,
+      authorId: user?.userId,
     },
     select: {
       id: true,
     },
   });
-  if (!user?.id || !project?.id) {
+  if (!user?.userId || !project?.id) {
     return res.status(404).json({ error: 'User or project not found' });
   }
   const newTask = await prisma.task.create({
@@ -57,7 +65,7 @@ const createTask = async (req: Request, res: Response) => {
       name: task.title,
       published: false,
       description: '',
-      authorId: user?.id,
+      authorId: user?.userId,
       projectId: project?.id,
     },
   });
@@ -71,16 +79,22 @@ const createTask = async (req: Request, res: Response) => {
   res.status(201).json(TaskResponse);
 };
 const updateTask = async (req: Request, res: Response) => {
+  const user = (req as Request & { user?: { userId?: number } }).user;
+  if (!user?.userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   const { id } = req.params;
   const task = updateTaskSchema.parse(req.body);
-  const tasks = await prisma.task.findUnique({
+  const tasks = await prisma.task.findFirst({
     where: {
       id: parseInt(id as string),
+      authorId: user?.userId,
     },
     select: {
       id: true,
       name: true,
       published: true,
+      authorId: true,
     },
   });
   if (!tasks) {
@@ -110,10 +124,15 @@ const updateTask = async (req: Request, res: Response) => {
   res.status(200).json(TaskResponse);
 };
 const deleteTask = async (req: Request, res: Response) => {
+  const user = (req as Request & { user?: { userId?: number } }).user;
+  if (!user?.userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   const { id } = req.params;
   const task = await prisma.task.findUnique({
     where: {
       id: parseInt(id as string),
+      authorId: user?.userId,
     },
   });
   if (!task) {

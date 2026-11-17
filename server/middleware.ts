@@ -28,6 +28,9 @@ const getTokenMiddleware = (
     if (!decoded) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
+    (req as Request & { user?: { userId?: number } }).user = decoded as {
+      userId?: number;
+    };
     next();
   } catch {
     return res.status(401).json({ message: 'Unauthorized' });
