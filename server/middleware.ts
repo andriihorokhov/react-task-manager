@@ -1,17 +1,35 @@
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { ZodError } from 'zod';
+import { Prisma } from '../prisma/generated/client.ts';
 const getErrorMiddleware = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction,
+  _next: NextFunction,
 ) => {
+  if (err instanceof ZodError) {
+    res.status(400).json({
+      error: 'Validation error',
+      message: 'Invalid request body',
+    });
+    return;
+  }
+  if (
+    err instanceof Prisma.PrismaClientKnownRequestError &&
+    err.code === 'P2002'
+  ) {
+    res.status(409).json({
+      error: 'Database error',
+      message: 'Email already exists',
+    });
+    return;
+  }
   res.status(500).json({
-    error: err.name,
-    message: err.message,
+    error: 'Internal server error',
+    message: 'Internal server error',
   });
-  console.error(err);
-  next(err);
+  return;
 };
 
 const getTokenMiddleware = (
@@ -19,7 +37,10 @@ const getTokenMiddleware = (
   res: Response,
   next: NextFunction,
 ) => {
-  const token = req.headers.cookie?.split('=')[1];
+  const token = req.headers.cookie
+    ?.split('; ')
+    .find((cookie) => cookie.startsWith('token='))
+    ?.split('=')[1];
   if (!token) {
     return res.status(401).json({ message: 'Unauthorized' });
   }

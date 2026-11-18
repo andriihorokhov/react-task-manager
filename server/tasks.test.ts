@@ -305,10 +305,6 @@ describe('Tasks API', () => {
     }
   });
   // two accounts
-  // Два акаунти. Задачу першого створи через наявні хелпери Prisma, щоб автор був відомий. Другий заходить своїм cookie і робить три запити до цієї задачі:
-  // GET /tasks не містить її id
-  // PATCH не змінює її назву в базі
-  // DELETE не видаляє рядок
   it('should not allow a user to access a task they did not create', async () => {
     const server = app.default.listen(0);
     const address = server.address() as AddressInfo;
@@ -376,6 +372,163 @@ describe('Tasks API', () => {
       await prisma.user.delete({
         where: {
           email: 'test@test9.com',
+        },
+      });
+      server.close();
+    }
+  });
+  // invalid body
+  it('should return a 400 status code', async () => {
+    const server = app.default.listen(0);
+    const address = server.address() as AddressInfo;
+    try {
+      await registerUser('test@test11.com', server);
+      const loginResponse = await loginUser('test@test11.com', server);
+      const cookie = loginResponse.headers
+        .get('Set-Cookie')
+        ?.split(';')[0] as string;
+      const response = await fetch(`http://127.0.0.1:${address.port}/tasks`, {
+        credentials: 'include',
+        headers: {
+          Cookie: cookie,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title: 123 }),
+        method: 'POST',
+      });
+      assert.equal(response.status, 400);
+      const responseData = await response.json();
+      assert.equal(responseData.message, 'Invalid request body');
+    } finally {
+      await prisma.user.delete({
+        where: {
+          email: 'test@test11.com',
+        },
+      });
+      server.close();
+    }
+  });
+  // email already exists
+  it('should return a 409 status code', async () => {
+    const server = app.default.listen(0);
+    await registerUser('test@test12.com', server);
+    try {
+      const response = await registerUser('test@test12.com', server);
+      assert.equal(response.status, 409);
+      const responseData = await response.json();
+      assert.equal(responseData.message, 'Email already exists');
+    } finally {
+      await prisma.user.delete({
+        where: {
+          email: 'test@test12.com',
+        },
+      });
+      server.close();
+    }
+  });
+  // 500 error
+  it('should return a 500 status code', async () => {
+    const server = app.default.listen(0);
+    const address = server.address() as AddressInfo;
+    await registerUser('test@test13.com', server);
+    const loginResponse = await loginUser('test@test13.com', server);
+    const cookie = loginResponse.headers
+      .get('Set-Cookie')
+      ?.split(';')[0] as string;
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:${address.port}/tasks/not-a-number`,
+        {
+          credentials: 'include',
+          method: 'PATCH',
+          headers: {
+            Cookie: cookie,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ title: 'Updated Task' }),
+        },
+      );
+
+      assert.equal(response.status, 500);
+      const responseData = await response.json();
+      assert.equal(responseData.error, 'Internal server error');
+      assert.equal(responseData.message, 'Internal server error');
+    } finally {
+      await prisma.user.delete({
+        where: {
+          email: 'test@test13.com',
+        },
+      });
+      server.close();
+    }
+  });
+  // Email not found
+  it('should return a 401 status code', async () => {
+    const server = app.default.listen(0);
+    try {
+      const response = await loginUser('test@test14.com', server);
+      assert.equal(response.status, 401);
+      const responseData = await response.json();
+      assert.equal(responseData.message, 'Invalid credentials');
+    } finally {
+      server.close();
+    }
+  });
+  // Invalid password
+  it('should return a 401 status code', async () => {
+    const server = app.default.listen(0);
+    const address = server.address() as AddressInfo;
+    try {
+      await registerUser('test@test15.com', server);
+      const response = await fetch(`http://127.0.0.1:${address.port}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: 'test@test15.com',
+          password: 'invalid123456789',
+        }),
+      });
+      assert.equal(response.status, 401);
+      const responseData = await response.json();
+      assert.equal(responseData.message, 'Invalid credentials');
+    } finally {
+      await prisma.user.delete({
+        where: {
+          email: 'test@test15.com',
+        },
+      });
+      server.close();
+    }
+  });
+  // other cookie before token
+  it('should return a 401 status code', async () => {
+    const server = app.default.listen(0);
+    const address = server.address() as AddressInfo;
+    await registerUser('test@test16.com', server);
+
+    try {
+      const loginResponse = await loginUser('test@test16.com', server);
+      const cookie = loginResponse.headers
+        .get('Set-Cookie')
+        ?.split(';')[0] as string;
+      // get /tasks
+      const getResponse = await fetch(
+        `http://127.0.0.1:${address.port}/tasks`,
+        {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Cookie: 'foo=bar; ' + cookie,
+          },
+        },
+      );
+      assert.equal(getResponse.status, 200);
+    } finally {
+      await prisma.user.delete({
+        where: {
+          email: 'test@test16.com',
         },
       });
       server.close();
