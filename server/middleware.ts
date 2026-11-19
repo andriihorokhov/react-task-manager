@@ -2,6 +2,21 @@ import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { ZodError } from 'zod';
 import { Prisma } from '../prisma/generated/client.ts';
+import { rateLimit } from 'express-rate-limit';
+
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5, // limit each IP to 5 requests per windowMs
+});
+
+export const rateLimitMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  limiter(req, res, next);
+};
+
 const getErrorMiddleware = (
   err: Error,
   req: Request,

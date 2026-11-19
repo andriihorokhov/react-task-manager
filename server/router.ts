@@ -8,7 +8,11 @@ import {
   loginUser,
   logoutUser,
 } from './controller.ts';
-import { getErrorMiddleware, getTokenMiddleware } from './middleware.ts';
+import {
+  getErrorMiddleware,
+  getTokenMiddleware,
+  rateLimitMiddleware,
+} from './middleware.ts';
 import type { ErrorRequestHandler } from 'express';
 const router = Router();
 
@@ -17,7 +21,7 @@ router.post('/tasks', getTokenMiddleware, createTask);
 router.patch('/tasks/:id', getTokenMiddleware, updateTask);
 router.delete('/tasks/:id', getTokenMiddleware, deleteTask);
 router.post('/register', registerUser);
-router.post('/login', loginUser);
+router.post('/login', rateLimitMiddleware, loginUser);
 router.post('/logout', logoutUser);
 router.use(getErrorMiddleware as ErrorRequestHandler);
 export default router;
