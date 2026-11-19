@@ -150,11 +150,16 @@ const loginUser = async (req: Request, res: Response) => {
     process.env.JWT_SECRET as string,
     { expiresIn: '1h' },
   );
-  res.cookie('token', token, { httpOnly: true, secure: true, maxAge: 3600000 });
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: true,
+    maxAge: 3600000,
+    sameSite: 'none',
+  });
   res.status(200).json();
 };
 const logoutUser = async (req: Request, res: Response) => {
-  res.clearCookie('token', { httpOnly: true, secure: true });
+  res.clearCookie('token', { httpOnly: true, secure: true, sameSite: 'none' });
   res.status(200).json({ message: 'User logged out successfully' });
 };
 export {

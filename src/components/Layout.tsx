@@ -26,7 +26,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </Link>
         <button
           onClick={() => {
-            fetch('http://localhost:3001/logout', {
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout`, {
               method: 'POST',
               credentials: 'include',
             }).then(() => {

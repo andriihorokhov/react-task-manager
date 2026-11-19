@@ -1,5 +1,5 @@
 import { Task } from '../types';
-const API_URL: string = 'http://localhost:3001/tasks';
+const API_URL: string = `${process.env.NEXT_PUBLIC_API_URL}/tasks`;
 
 const getTasks = async () => {
   const response = await fetch(API_URL, {
