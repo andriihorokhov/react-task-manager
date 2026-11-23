@@ -8,6 +8,12 @@ generator client {
   importFileExtension = "ts"
 }
 
+enum Priority {
+  low
+  medium
+  high
+}
+
 model User { 
     id       Int      @id @default(autoincrement()) 
     email    String   @unique
@@ -37,6 +43,8 @@ model Task {
     published   Boolean    @default(false) 
     author      User       @relation(fields: [authorId], references: [id]) 
     authorId    Int
-    project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+    project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
     projectId   Int 
+    priority    Priority   @default(low)
+    deadline    DateTime?
 } 

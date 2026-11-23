@@ -14,11 +14,13 @@ import {
 const createTaskSchema = z.object({
   priority: z.enum(['low', 'medium', 'high']).optional(),
   title: z.string(),
+  deadline: z.coerce.date().optional(),
 });
 const updateTaskSchema = z.object({
   priority: z.enum(['low', 'medium', 'high']).optional(),
   title: z.string().optional(),
   completed: z.boolean().optional(),
+  deadline: z.coerce.date().optional(),
 });
 const registerUserSchema = z.object({
   email: z.string().email(),
@@ -37,7 +39,8 @@ const getTasks = async (req: Request, res: Response) => {
     id: task.id.toString(),
     title: task.name,
     completed: task.published,
-    priority: 'low',
+    priority: task.priority,
+    deadline: task.deadline,
   }));
   res.status(200).json(TasksResponse);
 };
@@ -47,7 +50,12 @@ const createTask = async (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   const task = createTaskSchema.parse(req.body);
-  const newTask = await createTaskPrisma(user?.userId, task.title);
+  const newTask = await createTaskPrisma(
+    user?.userId,
+    task.title,
+    task.priority,
+    task.deadline,
+  );
   if (!newTask) {
     return res.status(404).json({ error: 'User or project not found' });
   }
@@ -55,7 +63,8 @@ const createTask = async (req: Request, res: Response) => {
     id: newTask.id.toString(),
     title: newTask.name,
     completed: newTask.published,
-    priority: 'low',
+    priority: newTask.priority,
+    deadline: newTask.deadline,
   };
 
   res.status(201).json(TaskResponse);
@@ -73,6 +82,8 @@ const updateTask = async (req: Request, res: Response) => {
     parseInt(id as string),
     task.title,
     task.completed,
+    task.priority,
+    task.deadline,
   );
   if (!updatedTask) {
     return res.status(404).json({ error: 'Task not found' });
@@ -81,7 +92,8 @@ const updateTask = async (req: Request, res: Response) => {
     id: updatedTask.id.toString(),
     title: updatedTask.name,
     completed: updatedTask.published,
-    priority: 'low',
+    priority: updatedTask.priority,
+    deadline: updatedTask.deadline,
   };
   res.status(200).json(TaskResponse);
 };

@@ -1,4 +1,5 @@
 import prisma from './db.ts';
+import type { Priority } from '../prisma/generated/enums.ts';
 
 const getTasksPrisma = async (userId?: number) => {
   if (!userId) {
@@ -13,12 +14,19 @@ const getTasksPrisma = async (userId?: number) => {
       name: true,
       published: true,
       authorId: true,
+      priority: true,
+      deadline: true,
     },
   });
   return tasks;
 };
 
-const createTaskPrisma = async (userId: number, title: string) => {
+const createTaskPrisma = async (
+  userId: number,
+  title: string,
+  priority?: Priority,
+  deadline?: Date,
+) => {
   const project = await prisma.project.findFirst({
     where: {
       authorId: userId,
@@ -37,6 +45,8 @@ const createTaskPrisma = async (userId: number, title: string) => {
       projectId: project.id,
       authorId: userId,
       description: '',
+      priority: priority,
+      deadline: deadline,
     },
     select: {
       id: true,
@@ -44,6 +54,8 @@ const createTaskPrisma = async (userId: number, title: string) => {
       published: true,
       projectId: true,
       authorId: true,
+      priority: true,
+      deadline: true,
     },
   });
   return newTask;
@@ -54,6 +66,8 @@ const updateTaskPrisma = async (
   taskId: number,
   title?: string,
   published?: boolean,
+  priority?: Priority,
+  deadline?: Date,
 ) => {
   const task = await prisma.task.findFirst({
     where: {
@@ -64,6 +78,8 @@ const updateTaskPrisma = async (
       id: true,
       name: true,
       published: true,
+      priority: true,
+      deadline: true,
     },
   });
   if (!task) {
@@ -71,11 +87,18 @@ const updateTaskPrisma = async (
   }
   const updatedTask = await prisma.task.update({
     where: { id: taskId },
-    data: { name: title ?? task.name, published: published ?? task.published },
+    data: {
+      name: title ?? task.name,
+      published: published ?? task.published,
+      priority: priority ?? task.priority,
+      deadline: deadline ?? task.deadline,
+    },
     select: {
       id: true,
       name: true,
       published: true,
+      priority: true,
+      deadline: true,
     },
   });
   return updatedTask;
