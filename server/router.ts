@@ -15,9 +15,6 @@ import {
 } from './middleware.ts';
 import type { ErrorRequestHandler } from 'express';
 const router = Router();
-router.get('/ip', (req, res) => {
-  res.json({ ip: req.ip });
-});
 router.get('/tasks', getTokenMiddleware, getTasks);
 router.post('/tasks', getTokenMiddleware, createTask);
 router.patch('/tasks/:id', getTokenMiddleware, updateTask);
