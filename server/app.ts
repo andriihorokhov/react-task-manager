@@ -4,6 +4,7 @@ import cors from 'cors';
 import { pathToFileURL } from 'node:url';
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(
   cors({
