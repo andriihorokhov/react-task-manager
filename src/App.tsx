@@ -4,11 +4,22 @@ import Header from './components/Header';
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
 import FilterButtons from './components/FilterButtons';
+import TaskSearch from './components/TaskSearch';
 import { useTasks } from './hooks/useTasks';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import type { TaskStatus } from './types';
 function App() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const status = searchParams.get('status') ?? 'all';
+  const filter: TaskStatus =
+    status === 'active'
+      ? 'active'
+      : status === 'completed'
+        ? 'completed'
+        : 'all';
+  const search = searchParams.get('search') ?? '';
   const {
     tasks,
     loading,
@@ -28,20 +39,23 @@ function App() {
     toggleCompleteTaskError,
     toggleCompleteId,
     deletingId,
-  } = useTasks();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const status = searchParams.get('status') ?? 'all';
-  const filter: TaskStatus =
-    status === 'active'
-      ? 'active'
-      : status === 'completed'
-        ? 'completed'
-        : 'all';
+  } = useTasks(filter, search);
+
   function setFilter(next: TaskStatus) {
     const params = new URLSearchParams(searchParams);
     params.set('status', next);
     router.push(`/tasks?${params.toString()}`);
+  }
+
+  function setSearch(next: string) {
+    const params = new URLSearchParams(searchParams);
+    if (next.trim()) {
+      params.set('search', next);
+    } else {
+      params.delete('search');
+    }
+    const query = params.toString();
+    router.replace(query ? `/tasks?${query}` : '/tasks');
   }
   return (
     <>
@@ -51,6 +65,7 @@ function App() {
         creatingTask={creatingTask}
         creatingTaskError={creatingTaskError}
       />
+      <TaskSearch search={search} setSearch={setSearch} />
       <FilterButtons
         filters={['all', 'active', 'completed']}
         filter={filter}
@@ -64,6 +79,7 @@ function App() {
         toggleComplete={toggleComplete}
         editTask={editTask}
         filter={filter}
+        search={search}
         deletingTask={deletingTask}
         deletingTaskError={deletingTaskError}
         deletingId={deletingId}

@@ -15,7 +15,7 @@ export default function TaskItemEdit({
   editingId: string | null;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(task.title);
+  const [editedTitle, setEditedTitle] = useState(task.name);
   return (
     <>
       {isEditMode ? (
@@ -29,7 +29,7 @@ export default function TaskItemEdit({
         <span
           className={`relative block w-fit ${task.completed ? 'text-stone-400 ' : ''}`}
         >
-          {task.title}
+          {task.name}
           <motion.span
             initial={{ opacity: 0, width: 0 }}
             animate={{ opacity: 1, width: task.completed ? '100%' : 0 }}
@@ -44,7 +44,7 @@ export default function TaskItemEdit({
           type="button"
           onClick={() => {
             if (isEditMode) {
-              setEditedTitle(task.title);
+              setEditedTitle(task.name);
             }
             setIsEditMode(!isEditMode);
           }}

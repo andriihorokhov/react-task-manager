@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import App from '../../App';
+import App from '../../../App';
 
 export default function TasksPage() {
   return (

@@ -2,9 +2,9 @@
 
 A small task list on the Next.js App Router. The dashboard, the list, and a task page are file routes. The list itself stays in TanStack Query.
 
-Live app: https://react-task-manager-nine-amber.vercel.app/
+Live app: https://refreshing-magic-production.up.railway.app/
 
-The deployed page renders the shell. Task rows are loaded in the browser from `http://localhost:3001`, so they show up only on a machine where the Express server in `server/` is running. A public API comes later.
+The page and the API are on Railway. The page calls `https://react-task-manager-production.up.railway.app`. A logged-in request sends the HttpOnly cookie with `credentials`.
 
 ## Routes
 

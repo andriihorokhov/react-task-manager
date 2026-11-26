@@ -20,12 +20,12 @@ export default function Dashboard() {
           <Link href="/tasks">All ({tasks.length})</Link>
         </li>
         <li>
-          <Link href="/tasks?status=active">
+          <Link href="/tasks?filter=active">
             Active ({tasks.filter((task) => !task.completed).length})
           </Link>
         </li>
         <li>
-          <Link href="/tasks?status=completed">
+          <Link href="/tasks?filter=completed">
             Completed ({tasks.filter((task) => task.completed).length})
           </Link>
         </li>

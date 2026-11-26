@@ -46,5 +46,5 @@ model Task {
     project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
     projectId   Int 
     priority    Priority   @default(low)
-    deadline    DateTime?
+    deadline    DateTime?  @db.Date
 } 

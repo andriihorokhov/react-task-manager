@@ -8,6 +8,7 @@ function TaskList({
   toggleComplete,
   editTask,
   filter,
+  search,
   loading,
   error,
   deletingTask,
@@ -25,6 +26,7 @@ function TaskList({
   toggleComplete: (id: string) => void;
   editTask: (id: string, title: string) => Promise<boolean>;
   filter: TaskStatus;
+  search: string;
   loading: boolean;
   error: string | null;
   deletingTask: boolean;
@@ -59,7 +61,11 @@ function TaskList({
       </h2>
       {tasks.length === 0 ? (
         <div className="rounded-xl bg-white px-4 py-6 text-sm text-stone-600 shadow-sm">
-          <p>No tasks found. Add a new task to get started.</p>
+          <p>
+            {filter !== 'all' || search.trim() !== ''
+              ? 'No tasks found.'
+              : 'No tasks found. Add a new task to get started.'}
+          </p>
         </div>
       ) : (
         <motion.ul
@@ -87,10 +93,6 @@ function TaskList({
                 toggleCompleteLoading={toggleCompleteLoading}
                 toggleCompleteTaskError={toggleCompleteTaskError}
                 toggleCompleteId={toggleCompleteId}
-                hidden={
-                  (filter === 'active' && task.completed) ||
-                  (filter === 'completed' && !task.completed)
-                }
               />
             ))}
           </AnimatePresence>

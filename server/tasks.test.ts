@@ -48,7 +48,11 @@ const deleteProjectAndUser = async (projectId: number, userId: number) => {
   });
 };
 
-const registerUser = async (email: string, server: Server) => {
+const registerUser = async (
+  email: string,
+  server: Server,
+  name: string = 'Test User',
+) => {
   const address = server.address() as AddressInfo;
   return await fetch(`http://127.0.0.1:${address.port}/register`, {
     method: 'POST',
@@ -57,7 +61,7 @@ const registerUser = async (email: string, server: Server) => {
     },
     body: JSON.stringify({
       email: email,
-      name: 'Test User',
+      name: name,
       password: 'test123456',
     }),
     credentials: 'include',
@@ -330,7 +334,7 @@ describe('Tasks API', () => {
           method: 'GET',
         },
       );
-      const getResponseData = await getResponse.json();
+      const getResponseData = (await getResponse.json()) as unknown[];
       assert.equal(getResponseData.length, 0);
 
       // PATCH
@@ -397,7 +401,7 @@ describe('Tasks API', () => {
         method: 'POST',
       });
       assert.equal(response.status, 400);
-      const responseData = await response.json();
+      const responseData = (await response.json()) as { message: string };
       assert.equal(responseData.message, 'Invalid request body');
     } finally {
       await prisma.user.delete({
@@ -415,7 +419,7 @@ describe('Tasks API', () => {
     try {
       const response = await registerUser('test@test12.com', server);
       assert.equal(response.status, 409);
-      const responseData = await response.json();
+      const responseData = (await response.json()) as { message: string };
       assert.equal(responseData.message, 'Email already exists');
     } finally {
       await prisma.user.delete({
@@ -450,7 +454,10 @@ describe('Tasks API', () => {
       );
 
       assert.equal(response.status, 500);
-      const responseData = await response.json();
+      const responseData = (await response.json()) as {
+        error: string;
+        message: string;
+      };
       assert.equal(responseData.error, 'Internal server error');
       assert.equal(responseData.message, 'Internal server error');
     } finally {
@@ -468,7 +475,7 @@ describe('Tasks API', () => {
     try {
       const response = await loginUser('test@test14.com', server);
       assert.equal(response.status, 401);
-      const responseData = await response.json();
+      const responseData = (await response.json()) as { message: string };
       assert.equal(responseData.message, 'Invalid credentials');
     } finally {
       server.close();
@@ -491,7 +498,7 @@ describe('Tasks API', () => {
         }),
       });
       assert.equal(response.status, 401);
-      const responseData = await response.json();
+      const responseData = (await response.json()) as { message: string };
       assert.equal(responseData.message, 'Invalid credentials');
     } finally {
       await prisma.user.delete({
@@ -531,6 +538,268 @@ describe('Tasks API', () => {
           email: 'test@test16.com',
         },
       });
+      server.close();
+    }
+  });
+  // /projects without cookie
+  it('should return a 401 status code', async () => {
+    const server = app.default.listen(0);
+    const address = server.address() as AddressInfo;
+    try {
+      await registerUser('test@test17.com', server);
+      await loginUser('test@test17.com', server);
+
+      const response = await fetch(
+        `http://127.0.0.1:${address.port}/projects`,
+        {
+          credentials: 'include',
+        },
+      );
+      assert.equal(response.status, 401);
+    } finally {
+      await prisma.user.delete({
+        where: {
+          email: 'test@test17.com',
+        },
+      });
+      server.close();
+    }
+  });
+  // two accounts
+  it('should not allow a user to access a project they did not create', async () => {
+    const server = app.default.listen(0);
+    const address = server.address() as AddressInfo;
+    try {
+      await registerUser('test@test18.com', server);
+      const user1 = await prisma.user.findUnique({
+        where: {
+          email: 'test@test18.com',
+        },
+      });
+      if (!user1) {
+        throw new Error('User not found');
+      }
+      const project1 = await createProject(user1.id);
+      await registerUser('test@test19.com', server);
+      const loginResponse1 = await loginUser('test@test18.com', server);
+      const cookie1 = loginResponse1.headers
+        .get('Set-Cookie')
+        ?.split(';')[0] as string;
+      const loginResponse2 = await loginUser('test@test19.com', server);
+      const cookie2 = loginResponse2.headers
+        .get('Set-Cookie')
+        ?.split(';')[0] as string;
+      // GET /projects user1
+      const getResponse = await fetch(
+        `http://127.0.0.1:${address.port}/projects`,
+        {
+          credentials: 'include',
+          headers: {
+            Cookie: cookie1,
+            'Content-Type': 'application/json',
+          },
+          method: 'GET',
+        },
+      );
+      // GET /projects user2
+      const getResponse2 = await fetch(
+        `http://127.0.0.1:${address.port}/projects`,
+        {
+          credentials: 'include',
+          headers: {
+            Cookie: cookie2,
+            'Content-Type': 'application/json',
+          },
+          method: 'GET',
+        },
+      );
+      const getResponseData1 = (await getResponse.json()) as { id: number }[];
+      const getResponseData2 = (await getResponse2.json()) as { id: number }[];
+      // chech users project1 is not in user2's projects
+      assert.equal(
+        getResponseData1.some((project) => project.id === project1.id),
+        true,
+      );
+      assert.equal(
+        getResponseData2.some((project) => project.id === project1.id),
+        false,
+      );
+    } finally {
+      const emails = ['test@test18.com', 'test@test19.com'];
+      await prisma.task.deleteMany({
+        where: {
+          author: { email: { in: emails } },
+        },
+      });
+      await prisma.project.deleteMany({
+        where: {
+          author: { email: { in: emails } },
+        },
+      });
+      await prisma.user.deleteMany({
+        where: {
+          email: { in: emails },
+        },
+      });
+
+      server.close();
+    }
+  });
+  // /me
+  it('should return a 200 status code and the user', async () => {
+    const server = app.default.listen(0);
+    const address = server.address() as AddressInfo;
+    try {
+      await registerUser('test@test20.com', server, 'Alex');
+      const user = await prisma.user.findUnique({
+        where: {
+          email: 'test@test20.com',
+        },
+      });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      const loginResponse = await loginUser('test@test20.com', server);
+      const cookie = loginResponse.headers
+        .get('Set-Cookie')
+        ?.split(';')[0] as string;
+      const response = await fetch(`http://127.0.0.1:${address.port}/me`, {
+        credentials: 'include',
+        headers: {
+          Cookie: cookie,
+        },
+      });
+      //У відповіді name дорівнює переданому імені, поруч є id і email.
+      const responseData = (await response.json()) as {
+        name: string;
+        id: number;
+        email: string;
+      };
+      assert.equal(responseData.name, 'Alex');
+      assert.equal(responseData.id, user.id);
+      assert.equal(responseData.email, 'test@test20.com');
+      assert.equal(response.status, 200);
+    } finally {
+      await prisma.user.delete({
+        where: {
+          email: 'test@test20.com',
+        },
+      });
+      server.close();
+    }
+  });
+  // name from 1 to 50 characters
+  it('should return a 400 status code', async () => {
+    const server = app.default.listen(0);
+    const address = server.address() as AddressInfo;
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:${address.port}/register`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: '   ',
+            email: 'test@test21.com',
+            password: 'test123456',
+          }),
+        },
+      );
+      const user = await prisma.user.findUnique({
+        where: {
+          email: 'test@test21.com',
+        },
+      });
+      assert.equal(user, null);
+      assert.equal(response.status, 400);
+    } finally {
+      await prisma.user.deleteMany({
+        where: {
+          email: {
+            in: ['test@test21.com'],
+          },
+        },
+      });
+      server.close();
+    }
+  });
+  it('should return the deadline as the date that was sent', async () => {
+    const server = app.default.listen(0);
+    const address = server.address() as AddressInfo;
+    await registerUser('test@test22.com', server);
+    const user = await prisma.user.findUnique({
+      where: { email: 'test@test22.com' },
+    });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const project = await createProject(user.id);
+    const task = await createTask(user.id, project.id);
+    try {
+      const loginResponse = await loginUser('test@test22.com', server);
+      const cookie = loginResponse.headers
+        .get('Set-Cookie')
+        ?.split(';')[0] as string;
+      const response = await fetch(
+        `http://127.0.0.1:${address.port}/tasks/${task.id}`,
+        {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: {
+            Cookie: cookie,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ deadline: '2026-04-15' }),
+        },
+      );
+      const responseData = (await response.json()) as { deadline: string };
+      assert.equal(response.status, 200);
+      assert.equal(responseData.deadline, '2026-04-15');
+    } finally {
+      await deleteProjectAndUser(project.id, user.id);
+      server.close();
+    }
+  });
+  it('should clear the deadline when null is sent', async () => {
+    const server = app.default.listen(0);
+    const address = server.address() as AddressInfo;
+    await registerUser('test@test23.com', server);
+    const user = await prisma.user.findUnique({
+      where: { email: 'test@test23.com' },
+    });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const project = await createProject(user.id);
+    const task = await createTask(user.id, project.id);
+    await prisma.task.update({
+      where: { id: task.id },
+      data: { deadline: new Date('2026-04-15') },
+    });
+    try {
+      const loginResponse = await loginUser('test@test23.com', server);
+      const cookie = loginResponse.headers
+        .get('Set-Cookie')
+        ?.split(';')[0] as string;
+      const response = await fetch(
+        `http://127.0.0.1:${address.port}/tasks/${task.id}`,
+        {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: {
+            Cookie: cookie,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ deadline: null }),
+        },
+      );
+      const responseData = (await response.json()) as { deadline: null };
+      assert.equal(response.status, 200);
+      assert.equal(responseData.deadline, null);
+    } finally {
+      await deleteProjectAndUser(project.id, user.id);
       server.close();
     }
   });

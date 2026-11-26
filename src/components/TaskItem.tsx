@@ -77,6 +77,10 @@ function TaskItem({
           disabled={toggleCompleteLoading && toggleCompleteId === task.id}
         ></Button>
       </div>
+      {task.deadline && (
+        <div className="text-sm text-stone-500">Deadline: {task.deadline}</div>
+      )}
+
       {deletingTaskError && deletingId === task.id && (
         <div className="text-sm text-red-700">
           <p>Error: {deletingTaskError}</p>

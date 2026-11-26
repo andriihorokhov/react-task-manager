@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import {
   getTasks,
   createTaskRequest,
@@ -9,8 +8,10 @@ import {
   deleteTaskRequest,
 } from '../api/tasks';
 
-export function useTasks() {
-  const router = useRouter();
+export function useTasks(
+  filter: 'active' | 'completed' | 'all' = 'all',
+  search?: string,
+) {
   const [creatingTask, setCreatingTask] = useState<boolean>(false);
   const [creatingTaskError, setCreatingTaskError] = useState<string | null>(
     null,
@@ -34,22 +35,12 @@ export function useTasks() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['tasks'],
+    queryKey: ['tasks', filter, search],
     queryFn: async () => {
-      return getTasks();
-    },
-    retry: (failureCount, error) => {
-      if (error instanceof Error && error.message === 'Unauthorized') {
-        return false;
-      }
-      return failureCount < 3;
+      return getTasks(filter, search);
     },
   });
-  useEffect(() => {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      router.push('/login');
-    }
-  }, [router, error]);
+
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
@@ -57,7 +48,7 @@ export function useTasks() {
       return createTaskRequest(title);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', filter, search] });
     },
   });
 
@@ -66,7 +57,7 @@ export function useTasks() {
       return updateTaskTitle(id, title);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', filter, search] });
     },
   });
 
@@ -81,7 +72,7 @@ export function useTasks() {
       return updateTaskCompleted(id, completed);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', filter, search] });
     },
   });
 
@@ -90,7 +81,7 @@ export function useTasks() {
       return deleteTaskRequest(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', filter, search] });
     },
   });
 

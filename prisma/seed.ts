@@ -1,6 +1,7 @@
 import prisma from '../server/db.ts';
 import crypto from 'crypto';
 import { scrypt } from 'crypto';
+import { buildDemoData, demoUserName } from './demo-data.ts';
 const salt = crypto.randomBytes(16).toString('hex');
 const passwordHash = await new Promise<string>((resolve, reject) => {
   scrypt('test123456', salt, 32, (err, derivedKey) => {
@@ -38,7 +39,7 @@ if (existingUser) {
 const user = await prisma.user.create({
   data: {
     email: 'test@test.com',
-    name: 'Test User',
+    name: demoUserName,
     password: `${passwordHash}:${salt}`,
   },
   select: {
@@ -48,34 +49,31 @@ const user = await prisma.user.create({
   },
 });
 
-const project = await prisma.project.create({
-  data: {
-    name: 'Test Project',
-    description: 'Test Description',
-    authorId: user.id,
-  },
-  select: {
-    name: true,
-    id: true,
-  },
-});
+const projects = buildDemoData(new Date());
+for (const project of projects) {
+  await prisma.project.create({
+    data: {
+      name: project.name,
+      description: project.description,
+      authorId: user.id,
+      tasks: {
+        create: project.tasks.map((task) => ({
+          name: task.name,
+          description: task.description,
+          published: task.completed,
+          priority: task.priority,
+          deadline: task.deadline,
+          authorId: user.id,
+        })),
+      },
+    },
+  });
+}
 
-const task = await prisma.task.create({
-  data: {
-    name: 'Test Task',
-    description: 'Test Description',
-    projectId: project.id,
-    authorId: user.id,
-  },
-  select: {
-    name: true,
-    description: true,
-    projectId: true,
-    authorId: true,
-  },
-});
-
-console.log('User created:', user);
-console.log('Project created:', project);
-console.log('Task created:', task);
+console.log(
+  'User created:',
+  user.email,
+  user.name,
+  `${projects.length} projects`,
+);
 prisma.$disconnect();

@@ -9,7 +9,7 @@
     "test": "node --test",
     "start": "prisma generate && prisma migrate deploy && node server/app.ts",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.server.json",
     "format": "prettier --write .",
     "preview": "vite preview",
     "prepare": "husky"
